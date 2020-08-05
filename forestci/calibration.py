@@ -89,9 +89,15 @@ def gfit(X, sigma, p=5, nbin=200, unif_fraction=0.1):
                 100 * np.finfo(np.double).tiny)):
                 return (1000 * (len(X) + sum(eta ** 2)))
 
-        g_eta_main = g_eta_raw / sum(g_eta_raw)
-        g_eta = ((1 - unif_fraction) * g_eta_main +
-                 unif_fraction * mask / sum(mask))
+        if sum(g_eta_raw) == 0:
+            g_eta_main = g_eta_raw
+        else:
+            g_eta_main = g_eta_raw / sum(g_eta_raw)
+        if sum(mask) == 0:
+            g_eta = ((1 - unif_fraction) * g_eta_main)
+        else:
+            g_eta = ((1 - unif_fraction) * g_eta_main +
+                     unif_fraction * mask / sum(mask))
         f_eta = fftconvolve(g_eta, noise_rotate, mode='same')
         return np.sum(np.interp(X, xvals,
                       -np.log(np.maximum(f_eta, 0.0000001))))
@@ -99,9 +105,15 @@ def gfit(X, sigma, p=5, nbin=200, unif_fraction=0.1):
     eta_hat = minimize(neg_loglik,
                        list(itertools.repeat(-1, p))).x
     g_eta_raw = np.exp(np.dot(XX, eta_hat)) * mask
-    g_eta_main = g_eta_raw / sum(g_eta_raw)
-    g_eta = ((1 - unif_fraction) * g_eta_main +
-             unif_fraction * mask) / sum(mask)
+    if sum(g_eta_raw) == 0:
+        g_eta_main = g_eta_raw
+    else:
+        g_eta_main = g_eta_raw / sum(g_eta_raw)
+    if sum(mask) == 0:
+        g_eta = ((1 - unif_fraction) * g_eta_main)
+    else:
+        g_eta = ((1 - unif_fraction) * g_eta_main +
+                 unif_fraction * mask / sum(mask))
 
     return xvals, g_eta
 
